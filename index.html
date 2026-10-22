@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Sala de Máquinas · Arcade de 5 juegos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>/* crítico: el layout funciona aunque styles.css no cargue */
+.view{display:none}.view.on{display:block}
+.sn-board{position:relative;width:min(100%,480px);aspect-ratio:1}
+.sn-board canvas,.tt-board{display:block;width:100%}
+.tt-board{height:min(56vh,520px);aspect-ratio:10/20}
+.bo-board{position:relative;width:min(100%,660px);aspect-ratio:4/3}
+.bo-board canvas{position:absolute;inset:0;width:100%;height:100%}
+.ms-grid{display:grid;grid-template-columns:repeat(var(--n,9),1fr);gap:2px;width:min(100%,calc(var(--n,9)*34px));margin:0 auto}
+.ms-grid .cell{aspect-ratio:1;display:grid;place-items:center}
+.sd-grid{display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1;width:min(100%,470px)}
+.sd-grid .sd-cell{display:grid;place-items:center}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="floor"></div>
+
+<header class="marquee">
+  <div class="marquee-in">
+    <div>
+      <div class="logo">SALA DE <b>MÁQUINAS</b></div>
+      <span class="tag">5 títulos · sin anuncios · sin excusas</span>
+    </div>
+    <div class="lamps" aria-hidden="true"></div>
+    <div class="ctrls">
+      <button class="chip" id="snd">SONIDO <b>ON</b></button>
+      <span class="chip mono" id="clock">--:--</span>
+    </div>
+  </div>
+</header>
+
+<main class="hall">
+  <nav class="rack" aria-label="Selector de juegos">
+    <div class="rack-lbl"><span>INSERTA FICHA</span><span>05 DISPONIBLES</span></div>
+
+    <button class="cart" data-goto="snake" aria-current="true" style="--acc:#a8e063;--acc-rgb:168,224,99">
+      <span class="led"></span>
+      <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h6v4H8v4h4v4h4"/><circle cx="19" cy="18" r="1.6" fill="currentColor" stroke="none"/></svg></span>
+      <span><span class="cart-name">Snake</span><span class="cart-meta">01 · reflejos · 1P</span><span class="cart-best">récord <b data-best="snake">0</b></span></span>
+      <span class="cart-arrow">▸</span>
+    </button>
+
+    <button class="cart" data-goto="mines" style="--acc:#ff6b6b;--acc-rgb:255,107,107">
+      <span class="led"></span>
+      <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="5.4" fill="currentColor" stroke="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2.2 2.2M16.8 16.8L19 19M19 5l-2.2 2.2M7.2 16.8L5 19"/></svg></span>
+      <span><span class="cart-name">Buscaminas</span><span class="cart-meta">02 · lógica · 3 niveles</span><span class="cart-best">récord <b data-best="mines">—</b></span></span>
+      <span class="cart-arrow">▸</span>
+    </button>
+
+    <button class="cart" data-goto="tetris" style="--acc:#3ddad7;--acc-rgb:61,218,215">
+      <span class="led"></span>
+      <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg></span>
+      <span><span class="cart-name">Tetris</span><span class="cart-meta">03 · velocidad · 7 piezas</span><span class="cart-best">récord <b data-best="tetris">0</b></span></span>
+      <span class="cart-arrow">▸</span>
+    </button>
+
+    <button class="cart" data-goto="sudoku" style="--acc:#ffc45e;--acc-rgb:255,196,94">
+      <span class="led"></span>
+      <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></span>
+      <span><span class="cart-name">Sudoku</span><span class="cart-meta">04 · calma · 3 dificultades</span><span class="cart-best">récord <b data-best="sudoku">—</b></span></span>
+      <span class="cart-arrow">▸</span>
+    </button>
+
+    <button class="cart" data-goto="breakout" style="--acc:#ff5da2;--acc-rgb:255,93,162">
+      <span class="led"></span>
+      <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2.5" y="4" width="7" height="4.6" rx="1.2"/><rect x="14.5" y="4" width="7" height="4.6" rx="1.2"/><rect x="8.5" y="10.2" width="7" height="4.6" rx="1.2"/><circle cx="12" cy="18.6" r="1.7" fill="currentColor" stroke="none"/><path d="M8 22.5h8" stroke-linecap="round"/></svg></span>
+      <span><span class="cart-name">Breakout</span><span class="cart-meta">05 · puntería · power-ups</span><span class="cart-best">récord <b data-best="breakout">0</b></span></span>
+      <span class="cart-arrow">▸</span>
+    </button>
+
+    <div class="rack-foot">
+      <b>CONSEJO</b><br>Todo se guarda en tu navegador.<br>Récords, tiempos y créditos.<br>Pulsa <b>Reglas</b> si vas perdido.
+    </div>
+  </nav>
+
+  <section class="stage">
+    <div class="stage-head">
+      <div>
+        <p class="kicker" id="kicker">Máquina 01 · seleccionada</p>
+        <h1 class="stage-title" id="title">Snake</h1>
+        <p class="stage-sub" id="sub">Come, crece y no te muerdas la cola.</p>
+      </div>
+      <div class="stage-actions">
+        <button class="btn" id="btnRules">Reglas</button>
+        <button class="btn" id="btnPause">Pausa</button>
+        <button class="btn solid" id="btnReset">Reiniciar</button>
+      </div>
+    </div>
+
+    <div class="bezel">
+      <div class="screen" id="screen">
+        <div class="scan"></div>
+
+        <section class="view on" id="view-snake" data-acc="#a8e063" data-rgb="168,224,99">
+          <div class="sn-wrap">
+            <div class="sn-board" id="snBoard"><canvas id="snCanvas"></canvas>
+              <div class="veil" id="snVeil"><div><h3>GAME OVER</h3><p id="snVeilTxt">Longitud 3</p><button class="btn solid" id="snAgain">Otra vez</button></div></div>
+            </div>
+            <div class="hud">
+              <div class="stat"><span>Puntos</span><b id="snScore">0</b></div>
+              <div class="stat"><span>Longitud</span><b id="snLen">3</b></div>
+              <div class="stat"><span>Velocidad</span><b id="snSpd">1</b></div>
+              <div class="dpad">
+                <button class="sp"></button><button data-dir="0,-1">▲</button><button class="sp"></button>
+                <button data-dir="-1,0">◀</button><button data-dir="0,1">▼</button><button data-dir="1,0">▶</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-mines" data-acc="#ff6b6b" data-rgb="255,107,107">
+          <div class="ms-tools">
+            <div class="seg" id="msDiff">
+              <button data-l="0" class="on">9×9 · 10</button><button data-l="1">12×12 · 22</button><button data-l="2">16×16 · 45</button>
+            </div>
+            <div class="ms-led" id="msMines">010</div>
+            <button class="face" id="msFace">🙂</button>
+            <div class="ms-led" id="msTime">000</div>
+            <button class="btn" id="msFlag">🚩 Modo bandera</button>
+          </div>
+          <div class="ms-grid" id="msGrid" style="--n:9"></div>
+        </section>
+
+        <section class="view" id="view-tetris" data-acc="#3ddad7" data-rgb="61,218,215">
+          <div class="tt-wrap">
+            <div style="position:relative">
+              <canvas class="tt-board" id="ttCanvas"></canvas>
+              <div class="veil" id="ttVeil"><div><h3>FIN DE PARTIDA</h3><p id="ttVeilTxt">0 líneas</p><button class="btn solid" id="ttAgain">Otra vez</button></div></div>
+            </div>
+            <div class="tt-side">
+              <div class="tt-mini"><span>SIGUIENTE</span><canvas id="ttNext" style="width:100%;height:150px"></canvas></div>
+              <div class="tt-mini"><span>RESERVA (C)</span><canvas id="ttHold" style="width:100%;height:60px"></canvas></div>
+              <div class="stat"><span>Puntos</span><b id="ttScore">0</b></div>
+              <div class="stat"><span>Líneas / Nivel</span><b id="ttLines">0 · 1</b></div>
+            </div>
+          </div>
+          <div class="tt-pad">
+            <button data-tt="left">◀</button><button data-tt="right">▶</button><button data-tt="rot">ROTAR</button><button data-tt="drop">⤓</button>
+          </div>
+        </section>
+
+        <section class="view" id="view-sudoku" data-acc="#ffc45e" data-rgb="255,196,94">
+          <div class="sd-wrap">
+            <div class="sd-grid" id="sdGrid"></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="hud" style="min-width:172px">
+                <div class="stat"><span>Tiempo</span><b id="sdTime">00:00</b></div>
+                <div class="stat"><span>Fallos / Pistas</span><b id="sdErr">0 · 3</b></div>
+              </div>
+              <div class="sd-key" id="sdKey"></div>
+              <div class="sd-tools">
+                <button class="btn" id="sdNotes">✏️ Notas</button>
+                <button class="btn" id="sdErase">⌫ Borrar</button>
+                <button class="btn" id="sdHint">💡 Pista</button>
+                <div class="seg" id="sdDiff" style="justify-content:center"><button data-d="38" class="on">Fácil</button><button data-d="31">Medio</button><button data-d="25">Duro</button></div>
+                <button class="btn solid" id="sdNew">Nueva rejilla</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-breakout" data-acc="#ff5da2" data-rgb="255,93,162">
+          <div class="bo-wrap">
+            <div class="bo-board" id="boBoard"><canvas id="boCanvas"></canvas>
+              <div class="veil" id="boVeil"><div><h3>GAME OVER</h3><p id="boVeilTxt">Nivel 1</p><button class="btn solid" id="boAgain">Otra vez</button></div></div>
+            </div>
+            <div class="hud">
+              <div class="stat"><span>Puntos</span><b id="boScore">0</b></div>
+              <div class="stat"><span>Nivel</span><b id="boLevel">1</b></div>
+              <div class="stat"><span>Vidas</span><b id="boLives">♥♥♥</b></div>
+              <div class="bo-pw" id="boPw"></div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+
+    <div class="legend" id="legend"></div>
+    <div class="rules" id="rules"></div>
+  </section>
+</main>
+
+<footer>Créditos <b>∞</b> · Guardado local · Hecho para perder el tiempo con elegancia</footer>
+<script src="script.js"></script>
+</body>
+</html>
