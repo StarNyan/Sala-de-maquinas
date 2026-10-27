@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sala de Máquinas</title>
+<title>Sala de Máquinas · Arcade de 6 juegos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -15,6 +15,8 @@
 .tt-board{height:min(56vh,520px);aspect-ratio:10/20}
 .bo-board{position:relative;width:min(100%,660px);aspect-ratio:4/3}
 .bo-board canvas{position:absolute;inset:0;width:100%;height:100%}
+.fl-board{position:relative;width:min(100%,420px);aspect-ratio:7/10}
+.fl-board canvas{position:absolute;inset:0;width:100%;height:100%}
 .ms-grid{display:grid;grid-template-columns:repeat(var(--n,9),1fr);gap:2px;width:min(100%,calc(var(--n,9)*34px));margin:0 auto}
 .ms-grid .cell{aspect-ratio:1;display:grid;place-items:center}
 .sd-grid{display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1;width:min(100%,470px)}
@@ -28,7 +30,7 @@
   <div class="marquee-in">
     <div>
       <div class="logo">SALA DE <b>MÁQUINAS</b></div>
-      <span class="tag">5 títulos · sin anuncios · sin excusas</span>
+      <span class="tag">6 títulos · sin anuncios · sin excusas</span>
     </div>
     <div class="lamps" aria-hidden="true"></div>
     <div class="ctrls">
@@ -40,7 +42,7 @@
 
 <main class="hall">
   <nav class="rack" aria-label="Selector de juegos">
-    <div class="rack-lbl"><span>INSERTA FICHA</span><span>05 DISPONIBLES</span></div>
+    <div class="rack-lbl"><span>INSERTA FICHA</span><span>06 DISPONIBLES</span></div>
 
     <button class="cart" data-goto="snake" aria-current="true" style="--acc:#a8e063;--acc-rgb:168,224,99">
       <span class="led"></span>
@@ -74,6 +76,13 @@
       <span class="led"></span>
       <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="2.5" y="4" width="7" height="4.6" rx="1.2"/><rect x="14.5" y="4" width="7" height="4.6" rx="1.2"/><rect x="8.5" y="10.2" width="7" height="4.6" rx="1.2"/><circle cx="12" cy="18.6" r="1.7" fill="currentColor" stroke="none"/><path d="M8 22.5h8" stroke-linecap="round"/></svg></span>
       <span><span class="cart-name">Breakout</span><span class="cart-meta">05 · puntería · power-ups</span><span class="cart-best">récord <b data-best="breakout">0</b></span></span>
+      <span class="cart-arrow">▸</span>
+    </button>
+
+    <button class="cart" data-goto="flappy" style="--acc:#ff9e57;--acc-rgb:255,158,87">
+      <span class="led"></span>
+      <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="12" r="6" fill="currentColor" stroke="none"/><path d="M17 11l4 1-4 1z" fill="currentColor" stroke="none"/><circle cx="9" cy="10" r="1" fill="#0a1018" stroke="none"/></svg></span>
+      <span><span class="cart-name">Flappy</span><span class="cart-meta">06 · pulso · 1P</span><span class="cart-best">récord <b data-best="flappy">0</b></span></span>
       <span class="cart-arrow">▸</span>
     </button>
 
@@ -178,6 +187,19 @@
               <div class="stat"><span>Nivel</span><b id="boLevel">1</b></div>
               <div class="stat"><span>Vidas</span><b id="boLives">♥♥♥</b></div>
               <div class="bo-pw" id="boPw"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-flappy" data-acc="#ff9e57" data-rgb="255,158,87">
+          <div class="fl-wrap">
+            <div class="fl-board" id="flBoard"><canvas id="flCanvas"></canvas>
+              <div class="veil" id="flVeil"><div><h3>GAME OVER</h3><p id="flVeilTxt">0 puntos</p><button class="btn solid" id="flAgain">Otra vez</button></div></div>
+            </div>
+            <div class="hud">
+              <div class="stat"><span>Puntos</span><b id="flScore">0</b></div>
+              <div class="stat"><span>Mejor</span><b id="flBest">0</b></div>
+              <div class="stat"><span>Nivel</span><b id="flLevel">1</b></div>
             </div>
           </div>
         </section>
