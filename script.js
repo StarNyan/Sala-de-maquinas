@@ -50,6 +50,7 @@ function refreshBests(){
   set('tetris', Store.get('tetris.best',0));
   set('breakout', Store.get('breakout.best',0));
   set('flappy', Store.get('flappy.best',0));
+  set('2048', Store.get('2048.best',0));
   set('mines', fmt(Store.get('mines.best',{})));
   set('sudoku', fmt(Store.get('sudoku.best',{})));
 }
@@ -321,7 +322,7 @@ GAMES.tetris={
   hud:function(){ $('#ttScore').textContent=this.score; $('#ttLines').textContent=this.lines+' · '+this.level; },
   die:function(){ this.over=true; this.frozen=true; S.hit();
     if(this.score>Store.get('tetris.best',0)){ Store.set('tetris.best',this.score); refreshBests(); }
-    $('#ttVeilTxt').textContent=this.lines+' líneas · '+this.score+' puntos'; $('#ttVeil h3').textContent='FIN DE PARTIDA'; this.veil.classList.add('on'); },
+    $('#ttVeilTxt').textContent=this.lines+' líneas · '+this.score+' puntos'; $('#ttVeil h3').textContent='GAME OVER'; this.veil.classList.add('on'); },
   pause:function(){ if(this.over) return; this.paused=!this.paused; $('#btnPause').textContent=this.paused?'Seguir':'Pausa';
     if(this.paused){ $('#ttVeilTxt').textContent='La pila te espera.'; $('#ttVeil h3').textContent='PAUSA'; this.veil.classList.add('on'); } else this.veil.classList.remove('on'); },
   resume:function(){ if(this.paused&&!this.over){ this.paused=false; $('#btnPause').textContent='Pausa'; this.veil.classList.remove('on'); } },
@@ -909,6 +910,146 @@ GAMES.flappy={
   }
 };
 
+/* ===================== 07 · 2048 ===================== */
+GAMES['2048']={
+  title:'2048', kicker:'Máquina 07 · fusiones', sub:'Igual suma doble. Persigue el 2048 sin bloquearte.',
+  canPause:false,
+  legend:[['← ↑ → ↓','deslizar'],['W A S D','alternativo'],['Deslizar','en táctil'],['R','reiniciar']],
+  rules:'Cada flecha desliza las <b>16 fichas</b> hasta el borde. Dos del mismo número que chocan se funden en una con la suma, y cada ficha solo fusiona una vez por turno. Tras cada movimiento válido nace una ficha nueva: <b>90% un 2</b>, <b>10% un 4</b>. Al llegar a 2048 puedes seguir subiendo. La partida se guarda en el navegador: si cierras, sigues donde lo dejaste.',
+  init:function(){
+    var self=this;
+    this.board=$('#ggBoard'); this.layer=$('#ggTiles'); this.veil=$('#ggVeil');
+    var g=$('#ggGrid'), h=''; for(var i=0;i<16;i++) h+='<div class="gg-cell"></div>'; g.innerHTML=h;
+    this.uid=0; this.tiles=[]; this.score=0; this.best=Store.get('2048.best',0);
+    this.won=false; this.over=false; this.busy=false;
+    var sx=0, sy=0, live=false;
+    this.board.addEventListener('pointerdown',function(e){ sx=e.clientX; sy=e.clientY; live=true; });
+    window.addEventListener('pointerup',function(e){ if(!live) return; live=false; self.gesture(e.clientX-sx,e.clientY-sy); });
+    this.board.addEventListener('pointercancel',function(){ live=false; });
+    $('#ggNew').addEventListener('click',function(){ self.start(); });
+    $('#ggAgain').addEventListener('click',function(){ self.start(); });
+    $('#ggKeep').addEventListener('click',function(){ self.veil.classList.remove('on'); });
+    var st=Store.get('2048.state',null);
+    if(st&&st.t&&st.t.length) this._restore=st;
+    this.hud();
+  },
+  lineCoords:function(dir,i){ var o=[],k;
+    for(k=0;k<4;k++){
+      if(dir===0) o.push([i,k]); else if(dir===2) o.push([i,3-k]);
+      else if(dir===1) o.push([k,i]); else o.push([3-k,i]);
+    } return o; },
+  mk:function(v,r,c,anim){
+    var t={id:++this.uid,v:v,r:r,c:c};
+    var d=document.createElement('div'); d.className='gg-tile'+(anim?' is-new':'')+' d'+String(v).length;
+    d.appendChild(document.createElement('span'));
+    t.el=d; d.style.setProperty('--r',r); d.style.setProperty('--c',c);
+    this.face(t); this.layer.appendChild(d); this.tiles.push(t); return t;
+  },
+  face:function(t){ var s=t.el.firstChild;
+    s.textContent=t.v;
+    s.className=(t.v>2048?'vmax':'v'+t.v);
+    t.el.className=t.el.className.replace(/\bd\d\b/g,'')+' d'+String(t.v).length; },
+  paint:function(t){ t.el.style.setProperty('--r',t.r); t.el.style.setProperty('--c',t.c); },
+  freeCells:function(){ var occ={},out=[],r,c;
+    this.tiles.forEach(function(t){ if(!t.die) occ[t.r+'_'+t.c]=1; });
+    for(r=0;r<4;r++)for(c=0;c<4;c++) if(!occ[r+'_'+c]) out.push([r,c]);
+    return out; },
+  born:function(){ var f=this.freeCells(); if(!f.length) return;
+    var p=f[(Math.random()*f.length)|0];
+    this.mk(Math.random()<0.9?2:4,p[0],p[1],true); },
+  gesture:function(dx,dy){
+    if(Math.max(Math.abs(dx),Math.abs(dy))<26) return;
+    if(Math.abs(dx)>Math.abs(dy)) this.move(dx>0?2:0); else this.move(dy>0?3:1); },
+  move:function(dir){
+    if(this.busy||this.over) return;
+    var self=this, gone=[], gained=0, moved=false;
+    for(var i=0;i<4;i++){
+      var pts=this.lineCoords(dir,i), idx={}, k;
+      for(k=0;k<4;k++) idx[pts[k][0]+'_'+pts[k][1]]=k;
+      var line=this.tiles.filter(function(t){ return !t.die && idx[t.r+'_'+t.c]!==undefined; })
+                         .sort(function(a,b){ return idx[a.r+'_'+a.c]-idx[b.r+'_'+b.c]; });
+      var out=[], j=0;
+      while(j<line.length){
+        var t=line[j];
+        if(j+1<line.length && line[j+1].v===t.v){
+          var dead=line[j+1];
+          t.nv=t.v*2; gained+=t.v*2; t.merge=true; moved=true;
+          dead.die=true; dead.r=pts[out.length][0]; dead.c=pts[out.length][1]; gone.push(dead);
+          out.push(t); j+=2;
+        } else { out.push(t); j++; }
+      }
+      for(k=0;k<out.length;k++){ var p=pts[k];
+        if(out[k].r!==p[0]||out[k].c!==p[1]) moved=true;
+        out[k].r=p[0]; out[k].c=p[1];
+      }
+    }
+    if(!moved) return;
+    this.busy=true;
+    if(gained){ this.score+=gained; this.fx(gained); Snd.seq([540,720,900],.045,'triangle',.05); }
+    else Snd.tone(250,.04,'square',.03);
+    this.tiles.forEach(function(t){ self.paint(t); });
+    this.born(); this.hud();
+    setTimeout(function(){
+      gone.forEach(function(d){ if(d.el.parentNode) d.el.parentNode.removeChild(d.el); });
+      self.tiles=self.tiles.filter(function(t){ return !t.die; });
+      self.tiles.forEach(function(t){
+        if(t.nv){ t.v=t.nv; t.el.classList.add('is-merged'); self.face(t); t.nv=0;
+          setTimeout(function(){ t.el.classList.remove('is-merged'); },250); }
+      });
+      self.busy=false; self.check();
+    },150);
+  },
+  check:function(){
+    var mx=0; this.tiles.forEach(function(t){ if(t.v>mx) mx=t.v; });
+    if(!this.won && mx>=2048){ this.won=true; S.win(); this.veilOn('¡2048!','Lo has conseguido. ¿Seguimos hasta el 4096?','keep'); }
+    if(!this.canMove()){
+      this.over=true; S.hit(); Store.set('2048.state',null);
+      this.veilOn('GAME OVER', this.score+' puntos · ficha máxima '+mx);
+      this.hud(); return;
+    }
+    this.hud(); this.save();
+  },
+  canMove:function(){
+    if(this.tiles.length<16) return true;
+    var m={}; this.tiles.forEach(function(t){ m[t.r+'_'+t.c]=t.v; });
+    for(var r=0;r<4;r++)for(var c=0;c<4;c++){ var v=m[r+'_'+c];
+      if(r<3&&m[(r+1)+'_'+c]===v) return true;
+      if(c<3&&m[r+'_'+(c+1)]===v) return true; }
+    return false;
+  },
+  fx:function(n){ var d=document.createElement('div'); d.className='gg-fx'; d.textContent='+'+n;
+    this.board.appendChild(d); setTimeout(function(){ if(d.parentNode) d.parentNode.removeChild(d); },880); },
+  veilOn:function(t,p,mode){ $('#ggVeilH').textContent=t; $('#ggVeilTxt').textContent=p;
+    $('#ggKeep').style.display = mode==='keep'?'':'none'; this.veil.classList.add('on'); },
+  hud:function(){
+    if(this.score>this.best){ this.best=this.score; Store.set('2048.best',this.best); refreshBests(); }
+    $('#ggScore').textContent=this.score; $('#ggBest').textContent=this.best;
+    var mx=0; this.tiles.forEach(function(t){ if(t.v>mx) mx=t.v; });
+    $('#ggTop').textContent=mx||'—';
+  },
+  save:function(){ Store.set('2048.state',{ t:this.tiles.map(function(t){ return {v:t.v,r:t.r,c:t.c}; }), s:this.score, w:this.won }); },
+  load:function(st){
+    this.tiles=[]; this.layer.innerHTML=''; this.score=st.s||0; this.won=!!st.w;
+    this.over=false; this.busy=false; this.veil.classList.remove('on');
+    var self=this; st.t.forEach(function(o){ self.mk(o.v,o.r,o.c,false); });
+    this.hud();
+  },
+  start:function(){
+    if(this._restore){ var st=this._restore; this._restore=null; this.load(st); return; }
+    this.tiles=[]; this.layer.innerHTML=''; this.score=0; this.won=false;
+    this.over=false; this.busy=false; this.veil.classList.remove('on');
+    this.born(); this.born(); this.hud(); this.save();
+  },
+  key:function(e){
+    var k=e.key.toLowerCase(), d=-1;
+    if(k==='arrowleft'||k==='a') d=0; else if(k==='arrowup'||k==='w') d=1;
+    else if(k==='arrowright'||k==='d') d=2; else if(k==='arrowdown'||k==='s') d=3;
+    if(d>=0){ e.preventDefault(); this.move(d); return; }
+    if(k===' ') e.preventDefault();
+    if(k==='r'){ this.start(); return; }
+  }
+};
+
 /* ===================== arranque ===================== */
 function boot(){
   var g=GAMES.snake;
@@ -918,7 +1059,7 @@ function boot(){
   $('#legend').innerHTML=g.legend.map(function(p){ return '<span class="key"><kbd>'+p[0]+'</kbd>'+p[1]+'</span>'; }).join('');
   $('#rules').innerHTML=g.rules; refreshBests();
   var idle=window.requestIdleCallback||function(f){ setTimeout(f,300); };
-  idle(function(){ ['mines','tetris','sudoku','breakout','flappy'].forEach(function(id){ safe(function(){ GAMES[id].init(); GAMES[id]._i=1; }, id+'.idle'); }); });
+  idle(function(){ ['mines','tetris','sudoku','breakout','flappy','2048'].forEach(function(id){ safe(function(){ GAMES[id].init(); GAMES[id]._i=1; }, id+'.idle'); }); });
 }
 var last=0;
 (function loop(t){ var dt=Math.min(70,t-last); last=t;
