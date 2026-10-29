@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sala de Máquinas · Arcade de 6 juegos</title>
+<title>Sala de Máquinas · Arcade de 7 juegos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -17,6 +17,9 @@
 .bo-board canvas{position:absolute;inset:0;width:100%;height:100%}
 .fl-board{position:relative;width:min(100%,420px);aspect-ratio:7/10}
 .fl-board canvas{position:absolute;inset:0;width:100%;height:100%}
+.gg-board{position:relative;width:min(100%,460px);aspect-ratio:1}
+.gg-grid{display:grid;grid-template-columns:repeat(4,1fr)}
+.gg-tile{position:absolute}
 .ms-grid{display:grid;grid-template-columns:repeat(var(--n,9),1fr);gap:2px;width:min(100%,calc(var(--n,9)*34px));margin:0 auto}
 .ms-grid .cell{aspect-ratio:1;display:grid;place-items:center}
 .sd-grid{display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1;width:min(100%,470px)}
@@ -30,7 +33,7 @@
   <div class="marquee-in">
     <div>
       <div class="logo">SALA DE <b>MÁQUINAS</b></div>
-      <span class="tag">6 títulos · sin anuncios · sin excusas</span>
+      <span class="tag">7 títulos · sin anuncios · sin excusas</span>
     </div>
     <div class="lamps" aria-hidden="true"></div>
     <div class="ctrls">
@@ -42,7 +45,7 @@
 
 <main class="hall">
   <nav class="rack" aria-label="Selector de juegos">
-    <div class="rack-lbl"><span>INSERTA FICHA</span><span>06 DISPONIBLES</span></div>
+    <div class="rack-lbl"><span>INSERTA FICHA</span><span>07 DISPONIBLES</span></div>
 
     <button class="cart" data-goto="snake" aria-current="true" style="--acc:#a8e063;--acc-rgb:168,224,99">
       <span class="led"></span>
@@ -83,6 +86,13 @@
       <span class="led"></span>
       <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="12" r="6" fill="currentColor" stroke="none"/><path d="M17 11l4 1-4 1z" fill="currentColor" stroke="none"/><circle cx="9" cy="10" r="1" fill="#0a1018" stroke="none"/></svg></span>
       <span><span class="cart-name">Flappy</span><span class="cart-meta">06 · pulso · 1P</span><span class="cart-best">récord <b data-best="flappy">0</b></span></span>
+      <span class="cart-arrow">▸</span>
+    </button>
+
+    <button class="cart" data-goto="2048" style="--acc:#c58bff;--acc-rgb:197,139,255">
+      <span class="led"></span>
+      <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2" fill="currentColor" stroke="none"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2" fill="currentColor" stroke="none" opacity=".45"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg></span>
+      <span><span class="cart-name">2048</span><span class="cart-meta">07 · fusiones · 1P</span><span class="cart-best">récord <b data-best="2048">0</b></span></span>
       <span class="cart-arrow">▸</span>
     </button>
 
@@ -143,7 +153,7 @@
           <div class="tt-wrap">
             <div style="position:relative">
               <canvas class="tt-board" id="ttCanvas"></canvas>
-              <div class="veil" id="ttVeil"><div><h3>FIN DE PARTIDA</h3><p id="ttVeilTxt">0 líneas</p><button class="btn solid" id="ttAgain">Otra vez</button></div></div>
+              <div class="veil" id="ttVeil"><div><h3>GAME OVER</h3><p id="ttVeilTxt">0 líneas</p><button class="btn solid" id="ttAgain">Otra vez</button></div></div>
             </div>
             <div class="tt-side">
               <div class="tt-mini"><span>SIGUIENTE</span><canvas id="ttNext" style="width:100%;height:150px"></canvas></div>
@@ -200,6 +210,23 @@
               <div class="stat"><span>Puntos</span><b id="flScore">0</b></div>
               <div class="stat"><span>Mejor</span><b id="flBest">0</b></div>
               <div class="stat"><span>Nivel</span><b id="flLevel">1</b></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="view-2048" data-acc="#c58bff" data-rgb="197,139,255">
+          <div class="gg-wrap">
+            <div class="gg-board" id="ggBoard">
+              <div class="gg-grid" id="ggGrid"></div>
+              <div class="gg-tiles" id="ggTiles"></div>
+              <div class="veil" id="ggVeil"><div><h3 id="ggVeilH">GAME OVER</h3><p id="ggVeilTxt">0 puntos</p>
+                <button class="btn" id="ggKeep" style="display:none">Seguir jugando</button><button class="btn solid" id="ggAgain">Otra vez</button></div></div>
+            </div>
+            <div class="hud">
+              <div class="stat"><span>Puntos</span><b id="ggScore">0</b></div>
+              <div class="stat"><span>Mejor</span><b id="ggBest">0</b></div>
+              <div class="stat"><span>Ficha máxima</span><b id="ggTop">—</b></div>
+              <button class="btn solid" id="ggNew">Nueva partida</button>
             </div>
           </div>
         </section>
