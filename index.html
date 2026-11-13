@@ -3,11 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Sala de Máquinas · Arcade de 7 juegos</title>
+<title>Sala de Máquinas · Arcade de 8 juegos</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=IBM+Plex+Mono:wght@400;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=11">
 <style>/* crítico: el layout funciona aunque styles.css no cargue */
 .view{display:none}.view.on{display:block}
 .sn-board{position:relative;width:min(100%,480px);aspect-ratio:1}
@@ -24,6 +24,9 @@
 .ms-grid .cell{aspect-ratio:1;display:grid;place-items:center}
 .sd-grid{display:grid;grid-template-columns:repeat(9,1fr);aspect-ratio:1;width:min(100%,470px)}
 .sd-grid .sd-cell{display:grid;place-items:center}
+.sk-board{position:relative;width:min(100%,420px);aspect-ratio:3/5}
+.sk-board canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sk-next{display:block;width:100%;height:56px}
 </style>
 </head>
 <body>
@@ -33,7 +36,7 @@
   <div class="marquee-in">
     <div>
       <div class="logo">SALA DE <b>MÁQUINAS</b></div>
-      <span class="tag">7 títulos · sin anuncios · sin excusas</span>
+      <span class="tag">8 títulos · sin anuncios · sin excusas</span>
     </div>
     <div class="lamps" aria-hidden="true"></div>
     <div class="ctrls">
@@ -45,7 +48,7 @@
 
 <main class="hall">
   <nav class="rack" aria-label="Selector de juegos">
-    <div class="rack-lbl"><span>INSERTA FICHA</span><span>07 DISPONIBLES</span></div>
+    <div class="rack-lbl"><span>INSERTA FICHA</span><span>08 DISPONIBLES</span></div>
 
     <button class="cart" data-goto="snake" aria-current="true" style="--acc:#a8e063;--acc-rgb:168,224,99">
       <span class="led"></span>
@@ -93,6 +96,13 @@
       <span class="led"></span>
       <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7.5" height="7.5" rx="2"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="2" fill="currentColor" stroke="none"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="2" fill="currentColor" stroke="none" opacity=".45"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"/></svg></span>
       <span><span class="cart-name">2048</span><span class="cart-meta">07 · fusiones · 1P</span><span class="cart-best">récord <b data-best="2048">0</b></span></span>
+      <span class="cart-arrow">▸</span>
+    </button>
+
+    <button class="cart" data-goto="suika" style="--acc:#ffffff;--acc-rgb:255,255,255">
+      <span class="led"></span>
+      <span class="cart-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="14" r="7.2"/><circle cx="9" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="2" fill="currentColor" stroke="none"/><path d="M12 7v3"/></svg></span>
+      <span><span class="cart-name">Suika</span><span class="cart-meta">08 · fusiones · colores</span><span class="cart-best">récord <b data-best="suika">0</b></span></span>
       <span class="cart-arrow">▸</span>
     </button>
 
@@ -231,6 +241,23 @@
           </div>
         </section>
 
+        <section class="view" id="view-suika" data-acc="#ffffff" data-rgb="255,255,255">
+          <div class="sk-wrap">
+            <div class="sk-board" id="skBoard"><canvas id="skCanvas"></canvas>
+              <div class="veil" id="skVeil"><div><h3>GAME OVER</h3><p id="skVeilTxt">0 puntos</p><button class="btn solid" id="skAgain">Otra vez</button></div></div>
+            </div>
+            <div class="hud">
+              <div class="stat"><span>Puntos</span><b id="skScore">0</b></div>
+              <div class="stat"><span>Máxima</span><b id="skMax">—</b></div>
+              <div class="stat"><span>Siguiente</span><canvas id="skNextCanvas" class="sk-next"></canvas></div>
+              <div class="stat"><span>Estado</span><b id="skState">Suelta</b></div>
+              <div class="sk-pad">
+                <button data-sk="left">◀</button><button data-sk="drop">SOLTAR</button><button data-sk="right">▶</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </div>
     </div>
 
@@ -240,6 +267,6 @@
 </main>
 
 <footer>Créditos <b>∞</b> · Guardado local · Hecho para perder el tiempo con elegancia</footer>
-<script src="script.js"></script>
+<script src="script.js?v=11"></script>
 </body>
 </html>
